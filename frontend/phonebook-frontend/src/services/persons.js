@@ -24,7 +24,10 @@ const create = newObject => {
 
 const update = (id, newObject) => {
     const request = axios.put(`${baseUrl}/${id}`, newObject)
+    console.log(returnResponse(request))
     return returnResponse(request)
 }
 
-export default { getAll, erase, create, update }
+const personService = { getAll, erase, create, update }
+
+export default personService

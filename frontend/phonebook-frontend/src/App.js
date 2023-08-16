@@ -22,75 +22,74 @@ const App = () => {
       })
   }, [])
 
+  const showNotification = (message, type='info') => {
+    if (type === 'error') {
+      setError(true)
+    }
+    setNotification(message)
+
+    setTimeout(() => {
+      setNotification(null)
+      setError(false)
+    }, 5000)
+  }
+
+  const clearForm = () => {
+    setNewName('')
+    setNewNumber('')
+  }
+
   const deletePerson = (person) => {
     if (window.confirm(`Delete ${person.name}?`)) {
       personService.erase(person.id)
 
       setPersons(persons.filter(persons => persons.id !== person.id))
-      setNotification(`Deleted ${person.name}`)
-      setTimeout(() => {
-        setNotification(null)
-      }, 5000)
+      showNotification(`Deleted ${person.name}`)
+    }
+  }
+
+  const updatePerson = (person) => {
+    if (window.confirm(`${newName} is already added to phonebook, replace
+      the old number with a new one?`)) {
+
+        personService.update(person.id, {name: newName, number: newNumber})
+          .then(returnedPerson => {
+            console.log(returnedPerson)
+            setPersons(persons.map(p => p.id !== person.id ? p : returnedPerson))
+            showNotification(`Updated number for ${newName}`)
+          })
+          .catch(error => {
+            showNotification(`${person.name} has already been removed`, 'error')
+            setPersons(persons.filter(p => p.id !== person.id))
+          })
+          
+          clearForm()
     }
   }
 
   const addPerson = (e) => {
     e.preventDefault()
 
-    if (persons.some((person) => person.name === newName)) {
-      if (window.confirm(`${newName} is already added to phonebook, replace
-      the old number with a new one?`)) {
-        const personObject = {
-          name: newName,
-          number: newNumber
-        }
-        
-        const person = persons.find(p => p.name === newName)
-
-        personService
-          .update(person.id, personObject)
-          .then(returnedPerson => {
-            setPersons(persons.map(p =>
-              p.id !== person.id ? p : returnedPerson))
-          })
-          .then(setNotification(
-            `Updated number for ${newName}`
-          ),
-          setTimeout(() => {
-            setNotification(null)
-          }, 5000))
-          .catch(
-            setError(true),
-            setNotification(
-              `Information of ${newName} has already been removed from server`
-            ),
-            setTimeout(() => {
-              setNotification(null)
-              setError(false)
-            }, 5000))
-      }
+    const person = persons.find(p => p.name === newName)
+    if (person) {
+      updatePerson(person)
+      return
     }
-    else {
-      const personObject = {
-        name: newName,
-        number: newNumber
-      }
-
-        personService
-          .create(personObject)
-          .then(returnedPerson => {
-            setPersons(persons.concat(returnedPerson))
-          })
-          .then(setNotification(
-            `Added ${newName}`
-          ),
-          setTimeout(() => {
-            setNotification(null)
-          }, 5000))
+    const personObject = {
+      name: newName,
+      number: newNumber
     }
-    setNewName('')
-    setNewNumber('')
-  }
+    if (!personObject.name || !personObject.number) {
+      showNotification("Name or number is missing", "error")
+    } else {
+      personService.create(personObject)
+        .then(returnedPerson => {
+        setPersons(persons.concat(returnedPerson))
+        showNotification(`Added ${newName}`)
+        })
+      }
+      clearForm()
+    }
 
   const handleNameChange = (e) => {
     setNewName(e.target.value)
