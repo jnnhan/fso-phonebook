@@ -14,8 +14,30 @@ mongoose.connect(url)
     })
 
 const personSchema = new mongoose.Schema({
-    name: String,
-    number: String,
+    name: {
+        type: String,
+        minlength: 3,
+        required: true
+    },
+    number: {
+        type: String,
+        minlength: 8,
+        validate: {
+            validator: (number) => {
+                if (number.charAt(2) === '-' && 
+                /^\d{2}$/.test(number.substring(0,2)) &&
+                /^\d+$/.test(number.substring(3))) {
+                    return true
+                } else if (number.charAt(3) === '-' &&
+                /^\d{3}$/.test(number.substring(0,3)) &&
+                /^\d+$/.test(number.substring(4))) {
+                    return true
+                }
+                return false
+            },
+            message: "Number must be in form xx-xxxxxx or xxx-xxxxx"
+        }
+    }
 })
 
 personSchema.set('toJSON', {

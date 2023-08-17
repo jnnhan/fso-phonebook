@@ -54,7 +54,6 @@ const App = () => {
 
         personService.update(person.id, {name: newName, number: newNumber})
           .then(returnedPerson => {
-            console.log(returnedPerson)
             setPersons(persons.map(p => p.id !== person.id ? p : returnedPerson))
             showNotification(`Updated number for ${newName}`)
           })
@@ -71,6 +70,7 @@ const App = () => {
     e.preventDefault()
 
     const person = persons.find(p => p.name === newName)
+
     if (person) {
       updatePerson(person)
       return
@@ -79,16 +79,16 @@ const App = () => {
       name: newName,
       number: newNumber
     }
-    if (!personObject.name || !personObject.number) {
-      showNotification("Name or number is missing", "error")
-    } else {
-      personService.create(personObject)
-        .then(returnedPerson => {
-        setPersons(persons.concat(returnedPerson))
-        showNotification(`Added ${newName}`)
-        })
-      }
-      clearForm()
+
+    personService.create(personObject)
+      .then(returnedPerson => {
+      setPersons(persons.concat(returnedPerson))
+      showNotification(`Added ${newName}`)
+      })
+      .catch(error => {
+        showNotification(`${error.response.data.error}`, 'error')
+      })
+    clearForm()
     }
 
   const handleNameChange = (e) => {
