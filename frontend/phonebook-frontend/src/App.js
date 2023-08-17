@@ -58,8 +58,14 @@ const App = () => {
             showNotification(`Updated number for ${newName}`)
           })
           .catch(error => {
-            showNotification(`${person.name} has already been removed`, 'error')
-            setPersons(persons.filter(p => p.id !== person.id))
+            let ermessage = JSON.stringify(error.response.data.error)
+            // Check if the error matches the start of validation error message
+            if (ermessage.substring(1,11) === 'Validation') {
+              showNotification(`${error.response.data.error}`, 'error')
+            } else {
+              showNotification(`${person.name} has already been removed`, 'error')
+              setPersons(persons.filter(p => p.id !== person.id))
+            }
           })
           
           clearForm()
